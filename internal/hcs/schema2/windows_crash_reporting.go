@@ -9,8 +9,23 @@
 
 package hcsschema
 
+type WindowsCrashDumpType string
+
+const (
+	Disabled      WindowsCrashDumpType = "Disabled"
+	Full          WindowsCrashDumpType = "Full"
+	Summary       WindowsCrashDumpType = "Summary"
+  Header        WindowsCrashDumpType = "Header"
+  Triage        WindowsCrashDumpType = "Triage"
+  BitmapFull    WindowsCrashDumpType = "BitmapFull"
+  BitmapKernel  WindowsCrashDumpType = "BitmapKernel"
+  Automatic     WindowsCrashDumpType = "Automatic"
+)
+
 type WindowsCrashReporting struct {
 	DumpFileName string `json:"DumpFileName,omitempty"`
+
+	DumpType WindowsCrashDumpType `json:"DumpType,omitempty"`
 
 	MaxDumpSize int64 `json:"MaxDumpSize,omitempty"`
 }
