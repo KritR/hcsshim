@@ -228,6 +228,18 @@ const (
 	// SecurityPolicy is used to specify a security policy for opengcs to enforce
 	SecurityPolicy = "io.microsoft.virtualmachine.lcow.securitypolicy"
 
+	// GuestDumpLocation specifies the directory on the host to save kernel dumps to.
+	GuestDumpLocation = "io.microsoft.virtualmachine.wcow.dumplocation"
+
+	// GuestDumpType specifies the type of dump to create when generating a kernel
+	// dump for Windows Containers. The supported option types include "Full" and "Summary".
+	// See https://github.com/Microsoft/hcsshim/internal/hcs/schema2/windows_crash_reporting.go for all options.
+	GuestDumpType = "io.microsoft.virtualmachine.wcow.dumptype"
+	
+	// GuestDumpMaxSize specifies the maximum size of the kernel dump that should be created
+	// for Windows Containers. If a dump exceeds this size, it will fail to be collected.
+	GuestDumpMaxSize = "io.microsoft.virtualmachine.wcow.maxdumpsize"
+
 	// ContainerProcessDumpLocation specifies a path inside of containers to save process dumps to. As
 	// the scratch space for a container is generally cleaned up after exit, this is best set to a volume mount of
 	// some kind (vhd, bind mount, fileshare mount etc.)
