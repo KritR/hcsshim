@@ -12,15 +12,45 @@ package hcsschema
 type WindowsCrashDumpType string
 
 const (
-	Disabled      WindowsCrashDumpType = "Disabled"
-	Full          WindowsCrashDumpType = "Full"
-	Summary       WindowsCrashDumpType = "Summary"
-  Header        WindowsCrashDumpType = "Header"
-  Triage        WindowsCrashDumpType = "Triage"
-  BitmapFull    WindowsCrashDumpType = "BitmapFull"
-  BitmapKernel  WindowsCrashDumpType = "BitmapKernel"
-  Automatic     WindowsCrashDumpType = "Automatic"
+	DumpDisabled     WindowsCrashDumpType = "Disabled"
+	DumpFull         WindowsCrashDumpType = "Full"
+	DumpSummary      WindowsCrashDumpType = "Summary"
+	DumpHeader       WindowsCrashDumpType = "Header"
+	DumpTriage       WindowsCrashDumpType = "Triage"
+	DumpBitmapFull   WindowsCrashDumpType = "BitmapFull"
+	DumpBitmapKernel WindowsCrashDumpType = "BitmapKernel"
+	DumpAutomatic    WindowsCrashDumpType = "Automatic"
 )
+
+func (dt WindowsCrashDumpType) IsValid() bool {
+	switch dt {
+	case DumpDisabled, DumpFull, DumpSummary, DumpHeader, DumpTriage, DumpBitmapFull, DumpBitmapKernel, DumpAutomatic:
+		return true
+	}
+	return false
+}
+
+func (dt WindowsCrashDumpType) ToUint() uint32 {
+	switch dt {
+	case DumpDisabled:
+		return 0
+	case DumpFull:
+		return 1
+	case DumpSummary:
+		return 2
+	case DumpHeader:
+		return 3
+	case DumpTriage:
+		return 4
+	case DumpBitmapFull:
+		return 5
+	case DumpBitmapKernel:
+		return 6
+	case DumpAutomatic:
+		return 7
+	}
+	return 0
+}
 
 type WindowsCrashReporting struct {
 	DumpFileName string `json:"DumpFileName,omitempty"`

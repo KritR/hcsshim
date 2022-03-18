@@ -8,6 +8,7 @@ import (
 
 	runhcsopts "github.com/Microsoft/hcsshim/cmd/containerd-shim-runhcs-v1/options"
 	"github.com/Microsoft/hcsshim/internal/clone"
+	hcsschema "github.com/Microsoft/hcsshim/internal/hcs/schema2"
 	"github.com/Microsoft/hcsshim/internal/log"
 	"github.com/Microsoft/hcsshim/internal/uvm"
 	"github.com/Microsoft/hcsshim/pkg/annotations"
@@ -194,6 +195,19 @@ func handleAnnotationFullyPhysicallyBacked(ctx context.Context, a map[string]str
 	}
 }
 
+// handleAnnotationCrashDump handles parsing annotations related to enabling crash dumps on pods.
+// Since GuestCrashDump is only supported for WCOW this function only deals with WCOW options.
+func handleAnnotationGuestCrashReporting(ctx context.Context, a map[string]string, wopts *uvm.OptionsWCOW) (err error) {
+	wopts.CrashDumpType = hcsschema.WindowsCrashDumpType(parseAnnotationsString(a, annotations.GuestDumpType, string(hcsschema.DumpDisabled)))
+	if !wopts.CrashDumpType.IsValid() {
+		return fmt.Errorf("Invalid crash dump type specified")
+	}
+	wopts.CrashDumpMaxSize = parseAnnotationsUint64(ctx, a, annotations.GuestDumpMaxSize, 0)
+	wopts.CrashDumpPath = parseAnnotationsString(a, annotations.GuestDumpLocation, "")
+
+	return nil
+}
+
 // handleCloneAnnotations handles parsing annotations related to template creation and cloning
 // Since late cloning is only supported for WCOW this function only deals with WCOW options.
 func handleCloneAnnotations(ctx context.Context, a map[string]string, wopts *uvm.OptionsWCOW) (err error) {
@@ -299,6 +313,9 @@ func SpecToUVMCreateOpts(ctx context.Context, s *specs.Spec, id, owner string) (
 		wopts.NoDirectMap = parseAnnotationsBool(ctx, s.Annotations, annotations.VSMBNoDirectMap, wopts.NoDirectMap)
 		wopts.NoInheritHostTimezone = parseAnnotationsBool(ctx, s.Annotations, annotations.NoInheritHostTimezone, wopts.NoInheritHostTimezone)
 		handleAnnotationFullyPhysicallyBacked(ctx, s.Annotations, wopts)
+		if err := handleAnnotationGuestCrashReporting(ctx, s.Annotations, wopts); err != nil {
+			return nil, err
+		}
 		if err := handleCloneAnnotations(ctx, s.Annotations, wopts); err != nil {
 			return nil, err
 		}

@@ -51,6 +51,15 @@ type OptionsWCOW struct {
 
 	// NoInheritHostTimezone specifies whether to not inherit the hosts timezone for the UVM. UTC will be set as the default for the VM instead.
 	NoInheritHostTimezone bool
+
+	// CrashDumpType specifies whether or not to take a crash dump and if so of what type. Disabled is the default.
+	CrashDumpType hcsschema.WindowsCrashDumpType
+
+	// CrashDumpMaxSize specifies the maximum size of the crash dump file to be collected.
+	CrashDumpMaxSize uint64
+
+	// CrashDumpPath specifies the path where the crash dump is saved.
+	CrashDumpPath string
 }
 
 // NewDefaultOptionsWCOW creates the default options for a bootable version of
