@@ -131,6 +131,12 @@ type UtilityVM struct {
 	// Location that container process dumps will get written too.
 	processDumpLocation string
 
+	// specifies if the UVM is created with crash dump support
+	guestDumpEnabled bool
+
+	// specifies the path of the dump file to write to if the UVM crashes
+	guestDumpPath string
+
 	// The CreateOpts used to create this uvm. These can be either of type
 	// uvm.OptionsLCOW or uvm.OptionsWCOW
 	createOpts interface{}

@@ -30,7 +30,7 @@ func (dt WindowsCrashDumpType) IsValid() bool {
 	return false
 }
 
-func (dt WindowsCrashDumpType) ToUint() uint32 {
+func (dt WindowsCrashDumpType) ToInt() int32 {
 	switch dt {
 	case DumpDisabled:
 		return 0

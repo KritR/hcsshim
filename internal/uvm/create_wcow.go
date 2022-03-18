@@ -56,7 +56,7 @@ type OptionsWCOW struct {
 	CrashDumpType hcsschema.WindowsCrashDumpType
 
 	// CrashDumpMaxSize specifies the maximum size of the crash dump file to be collected.
-	CrashDumpMaxSize uint64
+	CrashDumpMaxSize int64
 
 	// CrashDumpPath specifies the path where the crash dump is saved.
 	CrashDumpPath string
@@ -148,6 +148,54 @@ func prepareConfigDoc(ctx context.Context, uvm *UtilityVM, opts *OptionsWCOW, uv
 		)
 	}
 
+	var guestCrashReporting *hcsschema.GuestCrashReporting
+
+	if opts.CrashDumpType != hcsschema.DumpDisabled {
+		uvm.guestDumpEnabled = true
+		registryChanges.AddValues = append(registryChanges.AddValues,
+			hcsschema.RegistryValue{
+				Key: &hcsschema.RegistryKey{
+					Hive: "System",
+					Name: "ControlSet001\\Control\\CrashControl",
+				},
+				Name:       "CrashDumpEnabled",
+				DWordValue: opts.CrashDumpType.ToInt(),
+				Type_:      "DWord",
+			},
+		)
+
+		// Precreate the crash dump file
+		err = os.MkdirAll(opts.CrashDumpPath, os.ModePerm)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to precreate dump directory")
+		}
+
+		dumpFilePath := filepath.Join(opts.CrashDumpPath, uvm.id+".dmp")
+
+		dumpFile, err := os.Create(dumpFilePath)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to precreate dump file")
+		}
+		dumpFile.Close()
+
+		uvm.guestDumpPath = dumpFilePath
+
+		// Grant the vm access to the crash dump file
+		err = grantAccess(ctx, uvm.id, dumpFilePath, VMAccessTypeIndividual)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to grant VM access for dump")
+		}
+
+		// Setup the crash reporting device
+		guestCrashReporting = &hcsschema.GuestCrashReporting{
+			WindowsCrashSettings: &hcsschema.WindowsCrashReporting{
+				DumpFileName: dumpFilePath,
+				DumpType:     opts.CrashDumpType,
+				MaxDumpSize:  opts.CrashDumpMaxSize,
+			},
+		}
+	}
+
 	// Here for a temporary workaround until the need for setting this regkey is no more. To protect
 	// against any undesired behavior (such as some general networking scenarios ceasing to function)
 	// with a recent change to fix SMB share access in the UVM, this registry key will be checked to
@@ -215,7 +263,8 @@ func prepareConfigDoc(ctx context.Context, uvm *UtilityVM, opts *OptionsWCOW, uv
 						DefaultBindSecurityDescriptor: "D:P(A;;FA;;;SY)(A;;FA;;;BA)",
 					},
 				},
-				VirtualSmb: virtualSMB,
+				VirtualSmb:          virtualSMB,
+				GuestCrashReporting: guestCrashReporting,
 			},
 		},
 	}

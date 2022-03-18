@@ -202,7 +202,7 @@ func handleAnnotationGuestCrashReporting(ctx context.Context, a map[string]strin
 	if !wopts.CrashDumpType.IsValid() {
 		return fmt.Errorf("Invalid crash dump type specified")
 	}
-	wopts.CrashDumpMaxSize = parseAnnotationsUint64(ctx, a, annotations.GuestDumpMaxSize, 0)
+	wopts.CrashDumpMaxSize = int64(parseAnnotationsUint64(ctx, a, annotations.GuestDumpMaxSize, 0))
 	wopts.CrashDumpPath = parseAnnotationsString(a, annotations.GuestDumpLocation, "")
 
 	return nil
